@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disease Prediction System - Nigeria</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .header {
+            margin-bottom: 30px;
+            color: #28a745;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .btn-success {
+            background-color: #28a745;
+        }
+        #result-section {
+            display: none;
+            margin-top: 20px;
+        }
+        .severity-low {
+            color: #28a745;
+        }
+        .severity-medium {
+            color: #ffc107;
+        }
+        .severity-high {
+            color: #dc3545;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+        .precaution-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .precaution-item:last-child {
+            border-bottom: none;
+        }
+        .prediction-card {
+            border-left: 5px solid #28a745;
+            margin-bottom: 15px;
+        }
+        .prediction-card.primary {
+            border-left-color: #28a745;
+        }
+        .prediction-card.secondary {
+            border-left-color: #6c757d;
+        }
+        .prediction-card.tertiary {
+            border-left-color: #17a2b8;
+        }
+        .symptom-badge {
+            margin-right: 5px;
+            margin-bottom: 5px;
+            background-color: #e9ecef;
+            color: #495057;
+            font-size: 0.85rem;
+        }
+        .matching-symptom {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .suggested-symptom {
+            background-color: #f8d7da;
+            color: #721c24;
+            cursor: pointer;
+        }
+        .symptom-section {
+            margin-bottom: 15px;
+        }
+        .symptom-header {
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .symptom-toggle {
+            font-size: 0.8rem;
+            color: #6c757d;
+            cursor: pointer;
+        }
+        .other-symptoms-container {
+            display: none;
+            margin-top: 8px;
+        }
+        #selected-symptoms {
+            margin-bottom: 20px;
+        }
+        .accuracy-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .accuracy-info .progress {
+            flex-grow: 1;
+            margin-left: 10px;
+            height: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="header text-center">
+                    <h1>Disease Prediction System</h1>
+                    <p class="lead">Leveraging AI for healthcare in Nigeria</p>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h2 class="card-title">Select Your Symptoms</h2>
+                        <p class="card-text">Choose all the symptoms you are experiencing below:</p>
+                        
+                        <form id="prediction-form">
+                            <div class="mb-3">
+                                <select id="symptoms-select" name="symptoms" multiple class="form-control" style="width: 100%">
+                                    {% for symptom in symptoms %}
+                                    <option value="{{ symptom }}">{{ symptom.replace('_', ' ').title() }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="top-n" class="form-label">Number of diagnoses to display:</label>
+                                <select id="top-n" name="top_n" class="form-select">
+                                    <option value="1">1</option>
+                                    <option value="3" selected>3</option>
+                                    <option value="5">5</option>
+                                </select>
+                                <small class="text-muted">Multiple diagnoses can help you discuss possibilities with a healthcare provider.</small>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">Predict Disease</button>
+                        </form>
+                        
+                        <div class="loading">
+                            <div class="spinner-border text-success" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Analyzing your symptoms...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="result-section" class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Diagnosis Results</h2>
+                        
+                        <div id="selected-symptoms" class="mb-4">
+                            <h5>Symptoms You Selected:</h5>
+                            <div id="symptom-badges"></div>
+                        </div>
+                        
+                        <div id="predictions-container">
+                            <!-- Prediction cards will be added here dynamically -->
+                        </div>
+                        
+                        <div class="alert alert-warning mt-3">
+                            <strong>Disclaimer:</strong> These are AI-based predictions and should not replace professional medical advice. Please consult a healthcare professional for proper diagnosis.
+                        </div>
+                        
+                        <button id="new-prediction-btn" class="btn btn-outline-secondary w-100">Start New Prediction</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // Initialize Select2 for better multiselect experience
+            $('#symptoms-select').select2({
+                placeholder: 'Select symptoms',
+                width: '100%'
+            });
+            
+            // Form submission
+            $('#prediction-form').on('submit', function(e) {
+                e.preventDefault();
+                
+                const selectedSymptoms = $('#symptoms-select').val();
+                
+                if (!selectedSymptoms || selectedSymptoms.length === 0) {
+                    alert('Please select at least one symptom');
+                    return;
+                }
+                
+                // Show loading indicator
+                $('.loading').show();
+                
+                // Make AJAX request to predict endpoint
+                $.ajax({
+                    url: '/predict',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        // Hide loading indicator
+                        $('.loading').hide();
+                        
+                        if (response.error) {
+                            alert(response.error);
+                            return;
+                        }
+                        
+                        // Display selected symptoms
+                        const symptomBadgesContainer = $('#symptom-badges');
+                        symptomBadgesContainer.empty();
+                        
+                        response.selected_symptoms.forEach(function(symptom) {
+                            const formattedSymptom = symptom.replace(/_/g, ' ');
+                            symptomBadgesContainer.append(`<span class="badge rounded-pill symptom-badge">${formattedSymptom}</span>`);
+                        });
+                        
+                        // Display predictions
+                        const predictionsContainer = $('#predictions-container');
+                        predictionsContainer.empty();
+                        
+                        // Show each prediction
+                        response.predictions.forEach(function(prediction, index) {
+                            // Determine card class based on position
+                            let cardClass = 'primary';
+                            if (index === 1) cardClass = 'secondary';
+                            if (index >= 2) cardClass = 'tertiary';
+                            
+                            // Format confidence level
+                            const confidence = prediction.confidence;
+                            
+                            // Determine severity class and text
+                            let severityClass = 'severity-low';
+                            let severityText = 'Low';
+                            
+                            if (prediction.severity_score > 15) {
+                                severityClass = 'severity-high';
+                                severityText = 'High';
+                            } else if (prediction.severity_score > 8) {
+                                severityClass = 'severity-medium';
+                                severityText = 'Medium';
+                            }
+                            
+                            // Get all typical symptoms for this disease (excluding already matched ones)
+                            let otherSymptoms = [];
+                            if (prediction.all_symptoms) {
+                                const matchingSet = new Set(prediction.matching_symptoms || []);
+                                otherSymptoms = prediction.all_symptoms.filter(s => !matchingSet.has(s));
+                            }
+                            
+                            // Create prediction card
+                            const card = $(`
+                                <div class="card prediction-card ${cardClass}">
+                                    <div class="card-body">
+                                        <div class="accuracy-info mb-3">
+                                            <h4 class="m-0">${prediction.disease.replace(/_/g, ' ')}</h4>
+                                            <div class="progress ms-3">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: ${confidence}%" aria-valuenow="${confidence}" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                            <span class="badge bg-primary ms-2">${confidence}%</span>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <strong>Severity: </strong>
+                                            <span class="${severityClass}">${severityText} (${prediction.severity_score})</span>
+                                        </div>
+                                        
+                                        <div class="symptom-section">
+                                            <div class="symptom-header">
+                                                <h6 class="m-0">Matching Symptoms:</h6>
+                                                <span class="symptom-count">${prediction.matching_symptoms ? prediction.matching_symptoms.length : 0} of ${response.selected_symptoms.length} symptoms match</span>
+                                            </div>
+                                            <div class="matching-symptoms-container">
+                                                ${renderMatchingSymptoms(prediction.matching_symptoms, response.selected_symptoms)}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="symptom-section">
+                                            <div class="symptom-header">
+                                                <h6 class="m-0">Other Typical Symptoms:</h6>
+                                                <span class="symptom-toggle" data-action="show">Show all symptoms</span>
+                                            </div>
+                                            <div class="other-symptoms-container">
+                                                ${renderOtherSymptoms(otherSymptoms)}
+                                            </div>
+                                        </div>
+                                        
+                                        <h6>Description:</h6>
+                                        <p class="mb-3">${prediction.description}</p>
+                                        
+                                        <h6>Recommended Precautions:</h6>
+                                        <div class="precautions-list">
+                                            ${renderPrecautions(prediction.precautions)}
+                                        </div>
+                                    </div>
+                                </div>
+                            `);
+                            
+                            predictionsContainer.append(card);
+                        });
+                        
+                        // Add functionality to toggle other symptoms
+                        $('.symptom-toggle').on('click', function() {
+                            const container = $(this).closest('.symptom-section').find('.other-symptoms-container');
+                            if ($(this).data('action') === 'show') {
+                                container.slideDown();
+                                $(this).text('Hide symptoms');
+                                $(this).data('action', 'hide');
+                            } else {
+                                container.slideUp();
+                                $(this).text('Show all symptoms');
+                                $(this).data('action', 'show');
+                            }
+                        });
+                        
+                        // Add suggested symptoms click handler
+                        $('.suggested-symptom').on('click', function() {
+                            const symptomValue = $(this).data('symptom');
+                            const select2Element = $('#symptoms-select');
+                            
+                            // Check if this symptom is already selected
+                            const currentValues = select2Element.val() || [];
+                            if (!currentValues.includes(symptomValue)) {
+                                // Add the new option if it doesn't exist
+                                if (select2Element.find(`option[value="${symptomValue}"]`).length === 0) {
+                                    const newOption = new Option(symptomValue.replace(/_/g, ' ').title(), symptomValue, true, true);
+                                    select2Element.append(newOption);
+                                }
+                                
+                                // Add to selection
+                                currentValues.push(symptomValue);
+                                select2Element.val(currentValues).trigger('change');
+                                
+                                // Submit the form again for new prediction
+                                $('#prediction-form').submit();
+                            }
+                        });
+                        
+                        // Show result section
+                        $('#result-section').show();
+                    },
+                    error: function() {
+                        // Hide loading indicator
+                        $('.loading').hide();
+                        alert('An error occurred during prediction. Please try again.');
+                    }
+                });
+            });
+            
+            // Function to render matching symptoms
+            function renderMatchingSymptoms(matching, selected) {
+                if (!matching || matching.length === 0) {
+                    return '<p>No specifically matching symptoms found.</p>';
+                }
+                
+                let html = '';
+                // Add matching symptoms first with special class
+                matching.forEach(function(symptom) {
+                    const formattedSymptom = symptom.replace(/_/g, ' ');
+                    html += `<span class="badge rounded-pill symptom-badge matching-symptom">${formattedSymptom}</span>`;
+                });
+                
+                // Add other selected symptoms
+                selected.forEach(function(symptom) {
+                    if (!matching.includes(symptom)) {
+                        const formattedSymptom = symptom.replace(/_/g, ' ');
+                        html += `<span class="badge rounded-pill symptom-badge">${formattedSymptom}</span>`;
+                    }
+                });
+                
+                return html;
+            }
+            
+            // Function to render other symptoms for the disease
+            function renderOtherSymptoms(symptoms) {
+                if (!symptoms || symptoms.length === 0) {
+                    return '<p>No additional common symptoms found for this disease.</p>';
+                }
+                
+                let html = '';
+                // List other common symptoms for this disease as clickable suggestions
+                symptoms.forEach(function(symptom) {
+                    const formattedSymptom = symptom.replace(/_/g, ' ');
+                    html += `<span class="badge rounded-pill symptom-badge suggested-symptom" data-symptom="${symptom}" title="Click to add this symptom">${formattedSymptom}</span>`;
+                });
+                
+                return html;
+            }
+            
+            // Function to render precautions
+            function renderPrecautions(precautions) {
+                if (!precautions || precautions.length === 0) {
+                    return '<p>No specific precautions available.</p>';
+                }
+                
+                let html = '';
+                precautions.forEach(function(precaution) {
+                    if (precaution) {
+                        html += `<div class="precaution-item">• ${precaution}</div>`;
+                    }
+                });
+                
+                return html;
+            }
+            
+            // New prediction button
+            $('#new-prediction-btn').on('click', function() {
+                $('#result-section').hide();
+                $('#symptoms-select').val(null).trigger('change');
+            });
+        });
+    </script>
+</body>
+</html>
