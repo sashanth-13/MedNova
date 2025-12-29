@@ -39,7 +39,7 @@ The system uses multiple datasets:
 
 1. Clone the repository:
 ```
-git clone https://github.com/yourusername/disease_prediction_nigeria.git
+git clone https://github.com/sashanth-13/MedNova.git
 
 ```
 
