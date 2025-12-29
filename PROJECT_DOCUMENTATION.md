@@ -1,14 +1,14 @@
-# MediPredict Nigeria: AI-Powered Disease Prediction System - Project Documentation
+# Healthcare: AI-Powered Disease Prediction System - Project Documentation
 
 ## Introduction
 
-MediPredict Nigeria is an innovative AI-powered healthcare solution designed to assist in diagnosing diseases based on symptoms, particularly in areas with limited access to healthcare professionals. By leveraging advanced machine learning algorithms, this system analyzes patient-reported symptoms to suggest possible diseases, assess their severity, and provide recommended precautions.
+healthcare  is an innovative AI-powered healthcare solution designed to assist in diagnosing diseases based on symptoms, particularly in areas with limited access to healthcare professionals. By leveraging advanced machine learning algorithms, this system analyzes patient-reported symptoms to suggest possible diseases, assess their severity, and provide recommended precautions.
 
 Developed specifically for the Nigerian healthcare context, MediPredict serves as a digital health assistant that can help bridge the significant gap between available healthcare resources and patient needs across the country. The system is particularly valuable in rural and underserved communities where immediate access to qualified medical professionals is limited.
 
 ## Problem Statement
 
-Nigeria, like many developing countries, faces significant healthcare challenges:
+ like many developing countries, faces significant healthcare challenges:
 
 1. **Limited Healthcare Access**: With a doctor-to-patient ratio of approximately 1:5,000 (far below the WHO recommended 1:600), many Nigerians have limited access to qualified medical professionals.
 
