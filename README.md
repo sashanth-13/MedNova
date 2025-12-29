@@ -1,4 +1,4 @@
-# MediPredict Nigeria: AI-Powered Disease Prediction System
+# healthcare: AI-Powered Disease Prediction System
 
 A machine learning-based system for predicting diseases based on symptoms, designed specifically for the Nigerian healthcare context where access to medical professionals may be limited.
 
@@ -6,7 +6,7 @@ A machine learning-based system for predicting diseases based on symptoms, desig
 
 ## Overview
 
-MediPredict Nigeria is an innovative healthcare solution that uses advanced machine learning algorithms to identify possible diseases based on patient-reported symptoms. Designed to address the healthcare challenges in Nigeria, where the doctor-to-patient ratio is approximately 1:5,000 (far below the WHO recommended 1:600), this system serves as a preliminary diagnostic tool to assist both healthcare workers and patients.
+MediPredict  is an innovative healthcare solution that uses advanced machine learning algorithms to identify possible diseases based on patient-reported symptoms. Designed to address the healthcare challenges in Nigeria, where the doctor-to-patient ratio is approximately 1:5,000 (far below the WHO recommended 1:600), this system serves as a preliminary diagnostic tool to assist both healthcare workers and patients.
 
 The system analyzes symptom patterns, evaluates their severity, and provides multiple possible diagnoses with confidence scores, detailed descriptions, and recommended precautions. By leveraging artificial intelligence for healthcare diagnostics, MediPredict aims to reduce diagnostic delays, minimize the risks of self-medication, and optimize the use of limited healthcare resources, particularly in underserved rural communities.
 
@@ -40,7 +40,7 @@ The system uses multiple datasets:
 1. Clone the repository:
 ```
 git clone https://github.com/yourusername/disease_prediction_nigeria.git
-cd disease_prediction_nigeria
+
 ```
 
 2. Install required packages:
