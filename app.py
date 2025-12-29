@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 import pickle
 import numpy as np
 import pandas as pd
@@ -213,6 +213,35 @@ def home():
     # Convert all symptoms to strings before sorting to avoid type comparison errors
     string_symptoms = [str(symptom) for symptom in symptoms_list]
     return render_template('index.html', symptoms=sorted(string_symptoms))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        # In a real app, we would validate credentials here
+        return redirect(url_for('profile'))
+    return render_template('login.html')
+
+@app.route('/signup')
+def signup():
+    return render_template('signup.html')
+
+@app.route('/profile')
+def profile():
+    return render_template('profile.html', active_page='profile')
+
+@app.route('/symptoms')
+def symptoms():
+    # Convert all symptoms to strings before sorting to avoid type comparison errors
+    string_symptoms = [str(symptom) for symptom in symptoms_list]
+    return render_template('symptoms.html', symptoms=sorted(string_symptoms), active_page='symptoms')
+
+@app.route('/prescriptions')
+def prescriptions():
+    return render_template('prescriptions.html', active_page='prescriptions')
+
+@app.route('/logout')
+def logout():
+    return redirect(url_for('login'))
 
 @app.route('/predict', methods=['POST'])
 def predict():

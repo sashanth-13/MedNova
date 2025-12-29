@@ -1,0 +1,121 @@
+{% extends "base_patient.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="step-indicator">
+            <div class="step completed"><i class="fas fa-check"></i></div>
+            <div class="step active">2</div>
+            <div class="step">3</div>
+        </div>
+
+        <div class="card">
+            <div class="card-body p-4">
+                <h4 class="card-title fw-bold mb-4">Symptom Checker</h4>
+
+                <form id="prediction-form">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">What symptoms are you experiencing?</label>
+                        <select id="symptoms-select" name="symptoms" multiple class="form-control" style="width: 100%"
+                            required>
+                            {% for symptom in symptoms %}
+                            <option value="{{ symptom }}">{{ symptom.replace('_', ' ').title() }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Type to search or select from the list. Be as specific as possible.</div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Duration (Days)</label>
+                            <input type="number" class="form-control" min="1" value="1">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Severity</label>
+                            <select class="form-select">
+                                <option value="low">Low - Discomfort but manageable</option>
+                                <option value="medium">Medium - Affects daily routine</option>
+                                <option value="high">High - Severe pain or impairment</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Hidden field for top_n -->
+                    <input type="hidden" name="top_n" value="3">
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary w-100 py-3">
+                            <i class="fas fa-stethoscope me-2"></i> Analyze & Predict
+                        </button>
+                    </div>
+                </form>
+
+                <div class="loading text-center mt-4" style="display: none;">
+                    <div class="spinner-border text-info" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Consulting AI Knowledge Base...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Guard: Check Profile
+        if (!localStorage.getItem('userProfile')) {
+            window.location.href = '/profile';
+            return;
+        }
+
+        $('#symptoms-select').select2({
+            placeholder: 'Search for symptoms...',
+            width: '100%',
+            theme: "classic"
+        });
+
+        $('#prediction-form').on('submit', function (e) {
+            e.preventDefault();
+
+            const selectedSymptoms = $('#symptoms-select').val();
+            if (!selectedSymptoms || selectedSymptoms.length === 0) {
+                alert('Please select at least one symptom');
+                return;
+            }
+
+            // Show loading
+            $('.loading').show();
+            $('button[type="submit"]').prop('disabled', true);
+
+            $.ajax({
+                url: '/predict',
+                type: 'POST',
+                data: $(this).serialize(),
+                success: function (response) {
+                    if (response.error) {
+                        alert(response.error);
+                        $('.loading').hide();
+                        $('button[type="submit"]').prop('disabled', false);
+                        return;
+                    }
+
+                    // Save to Session Storage
+                    sessionStorage.setItem('currentPrediction', JSON.stringify(response));
+
+                    // Redirect to Results
+                    window.location.href = '/prescriptions';
+                },
+                error: function () {
+                    alert('An error occurred. Please try again.');
+                    $('.loading').hide();
+                    $('button[type="submit"]').prop('disabled', false);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
